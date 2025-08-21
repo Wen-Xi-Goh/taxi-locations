@@ -1,0 +1,27 @@
+name: Update Taxi Data Every Minute
+
+on:
+  schedule:
+    - cron: "* * * * *"   # Runs every minute
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Call LTA Taxi API and save response
+        env:
+          ACCOUNT_KEY: ${{ secrets.ACCOUNT_KEY }}
+        run: |
+          curl -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability" > taxi-data.json
+
+      - name: Commit and push data file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add taxi-data.json
+          git commit -m "Update taxi data"
+          git push
