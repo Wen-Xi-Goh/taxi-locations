@@ -2,8 +2,6 @@ name: Update Taxi Data Every Minute
 
 on:
   workflow_dispatch:    # Allows manual trigger in GitHub UI
-  schedule:
-    - cron: "* * * * *"   # Runs every minute
 
 jobs:
   update-data:
