@@ -28,3 +28,4 @@ jobs:
           git add taxi-data.json
           git diff --cached --quiet || git commit -m "Update taxi data"
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
+
