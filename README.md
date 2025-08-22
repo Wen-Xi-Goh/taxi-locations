@@ -1,1 +1,1 @@
-A simple HTML/JS/CSS starter template
+A HTML web app to display live locations of taxis for hire in Singapore (UNDER DEVELOPMENT, UNDERCOMPLETE)
