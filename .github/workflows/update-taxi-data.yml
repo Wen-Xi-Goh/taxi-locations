@@ -1,7 +1,7 @@
 name: Update Taxi Data Every Minute
 
 on:
-  workflow_dispatch:    # Allows manual trigger in GitHub UI
+  workflow_dispatch:  # Allows manual trigger in GitHub UI
 
 jobs:
   update-data:
@@ -15,7 +15,8 @@ jobs:
         env:
           ACCOUNT_KEY: ${{ secrets.ACCOUNT_KEY }}
         run: |
-          curl -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability" > taxi-data.json
+          curl -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" \
+          "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability" > taxi-data.json
 
       - name: Commit and push data file
         env:
@@ -23,7 +24,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin
+          git rebase origin/main
+
           git add taxi-data.json
           git diff --cached --quiet || git commit -m "Update taxi data"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:${{ github.ref }}
-
+          
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:main
