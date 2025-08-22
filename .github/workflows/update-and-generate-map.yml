@@ -38,6 +38,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add taxi-data.json singapore_taxi_map.html
+          git add taxi-data.json index.html
           git diff --cached --quiet || git commit -m "Update taxi data and map"
           git push
