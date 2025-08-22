@@ -2,18 +2,20 @@ import json
 import folium
 from folium.plugins import LocateControl
 
-# Load the taxi data
+# Load taxi data JSON file
 with open("taxi-data.json", "r") as f:
     responsedict = json.load(f)
 
-# Create the map centered on Singapore
+# Singapore center coordinates
 singapore_center = [1.3521, 103.8198]
+
+# Create folium map centered on Singapore
 map_sg = folium.Map(location=singapore_center, zoom_start=12)
 
-# Add the locate control button
+# Add a location button (shows user's location on click)
 LocateControl(auto_start=False).add_to(map_sg)
 
-# Add taxi locations
+# Plot taxi locations
 for taxi in responsedict['value']:
     folium.CircleMarker(
         location=[taxi['Latitude'], taxi['Longitude']],
@@ -23,20 +25,11 @@ for taxi in responsedict['value']:
         fill_opacity=0.7
     ).add_to(map_sg)
 
-# Add meta refresh tag by injecting into the HTML <head>
-refresh_html = """
-<meta http-equiv="refresh" content="60">
-"""
+# Add meta refresh tag to reload page every 60 seconds
+refresh_meta = '<meta http-equiv="refresh" content="60">'
+map_sg.get_root().header.add_child(folium.Element(refresh_meta))
 
-# Another way: Add JavaScript reload script
-# refresh_script = """
-# <script>
-#   setTimeout(() => { window.location.reload(); }, 60000);
-# </script>
-# """
-
-# Inject meta tag into map HTML
-map_sg.get_root().header.add_child(folium.Element(refresh_html))
-
-# Save the map as index.html
+# Save the generated map as index.html
 map_sg.save("index.html")
+
+print("index.html generated successfully")
