@@ -1,7 +1,7 @@
 name: Update Taxi Data Every Minute
 
 on:
-  workflow_dispatch:  # Allows manual trigger in GitHub UI
+  workflow_dispatch:  # Manual trigger only
 
 jobs:
   update-data:
@@ -26,9 +26,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git fetch origin
-          git rebase origin/main
+          git reset --hard origin/main
 
           git add taxi-data.json
           git diff --cached --quiet || git commit -m "Update taxi data"
-          
           git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:main
