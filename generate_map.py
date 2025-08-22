@@ -24,4 +24,4 @@ for taxi in responsedict['value']:
     ).add_to(map_sg)
 
 # Save the map to HTML
-map_sg.save("singapore_taxi_map.html")
+map_sg.save("index.html")
