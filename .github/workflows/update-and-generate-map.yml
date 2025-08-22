@@ -2,8 +2,6 @@ name: Update Taxi Data and Generate Map
 
 on:
   workflow_dispatch:    # manual trigger
-  schedule:
-    - cron: '*/5 * * * *'  # every 5 minutes (GitHub minimum)
 
 jobs:
   update-and-generate:
