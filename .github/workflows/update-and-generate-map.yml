@@ -24,9 +24,7 @@ jobs:
         env:
           ACCOUNT_KEY: ${{ secrets.ACCOUNT_KEY }}
         run: |
-          curl -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" 
-          "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability" 
-          -o taxi-data.json
+          curl -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability" -o taxi-data.json
 
       - name: Generate HTML map using folium
         run: |
