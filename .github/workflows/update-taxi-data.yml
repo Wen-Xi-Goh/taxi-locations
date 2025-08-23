@@ -2,9 +2,6 @@ name: Update Taxi Data Every Minute
 
 on:
   workflow_dispatch:  # Manual trigger only
-  schedule:
-    # * is a special character in YAML. An asterisk followed by a space means "every".
-    - cron: '*/1 * * * *' # Run every minute
 
 jobs:
   update-data:
