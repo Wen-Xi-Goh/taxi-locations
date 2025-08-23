@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    
+
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
-    
+
             <meta name="viewport" content="width=device-width,
                 initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
             <style>
@@ -54,18 +54,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.66.2/L.Control.Locate.min.css"/>
 </head>
 <body>
-    
-    
+
+
 <div id="timestamp" style="position: fixed; bottom: 10px; left: 10px; z-index:9999;
             background-color: white; padding: 5px; font-size: 12px;
             border: 1px solid #ccc;">
     Last updated: 2025-08-22 12:49:15
 </div>
-    
-<script>
-  const taxiLayer = L.layerGroup().addTo(map_845a0ec8331ce3e14fbac42f2fe52798);
 
- var map_845a0ec8331ce3e14fbac42f2fe52798 = L.map(
+<div class="folium-map" id="map_845a0ec8331ce3e14fbac42f2fe52798" ></div>
+
+<script>
+  var map_845a0ec8331ce3e14fbac42f2fe52798 = L.map(
  "map_845a0ec8331ce3e14fbac42f2fe52798",
  {
  center: [1.3521, 103.8198],
@@ -90,65 +90,13 @@
  var locate_control_ade0279986b237a4afc7e0fa78c82a55 = L.control.locate(
  {}
  ).addTo(map_845a0ec8331ce3e14fbac42f2fe52798);
-  async function refreshTaxiMarkers() {
-    try {
-      const timestamp = new Date().getTime(); // Get current timestamp
-      const res = await fetch('taxi-data.json?' + timestamp); // Append timestamp as query parameter
-      const data = await res.json();
-      taxiLayer.clearLayers();
 
-            <script>
-
-
- var map_845a0ec8331ce3e14fbac42f2fe52798 = L.map(
- "map_845a0ec8331ce3e14fbac42f2fe52798",
- {
- center: [1.3521, 103.8198],
- crs: L.CRS.EPSG3857,
- ...{
- "zoom": 12,
- "zoomControl": true,
- "preferCanvas": false,
- }
-
- }
- );
-
-
-
-            var tile_layer_42c9db8e347aa656d59682a82154c117 = L.tileLayer(
- "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
- {
- "minZoom": 0, "maxZoom": 19, "maxNativeZoom": 19, "noWrap": false, "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors", "subdomains": "abc", "detectRetina": false, "tms": false, "opacity": 1,
- }
-
-            );
-            tile_layer_42c9db8e347aa656d59682a82154c117.addTo(map_845a0ec8331ce3e14fbac42f2fe52798);
-            var locate_control_ade0279986b237a4afc7e0fa78c82a55 = L.control.locate(
- {}
- ).addTo(map_845a0ec8331ce37a4afc7e0fa78c82a55);
-
-            </script>
-
-        
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.66.2/L.Control.Locate.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.66.2/L.Control.Locate.min.css"/>
-</head>
-<body>
-    
-    
-<div id="timestamp" style="position: fixed; bottom: 10px; left: 10px; z-index:9999;
-            background-color: white; padding: 5px; font-size: 12px;
-            border: 1px solid #ccc;">
-    Last updated: 2025-08-22 12:49:15
-</div>
-    
-<script>
   const taxiLayer = L.layerGroup().addTo(map_845a0ec8331ce3e14fbac42f2fe52798);
 
   async function refreshTaxiMarkers() {
     try {
-      const res = await fetch('taxi-data.json');
+      const timestamp = new Date().getTime(); // Get current timestamp
+      const res = await fetch('taxi-data.json?' + timestamp); // Append timestamp as query parameter
       const data = await res.json();
       taxiLayer.clearLayers();
 
@@ -160,8 +108,8 @@
         }).addTo(taxiLayer);
       }
 
-      const timestamp = new Date().toLocaleString();
-      document.getElementById('timestamp').innerText = 'Last updated: ' + timestamp;
+      const updateTimestamp = new Date().toLocaleString();
+      document.getElementById('timestamp').innerText = 'Last updated: ' + updateTimestamp;
     } catch (err) {
       console.error("Taxi data refresh failed:", err);
     }
@@ -170,9 +118,7 @@
   // Refresh every 60 seconds
   setInterval(refreshTaxiMarkers, 60000);
 </script>
-    
-            <div class="folium-map" id="map_845a0ec8331ce3e14fbac42f2fe52798" ></div>
-        
+
 </body>
 
 </html>
