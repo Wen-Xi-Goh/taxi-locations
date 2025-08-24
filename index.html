@@ -58,8 +58,7 @@
 <body>
 
 
-<div id="timestamp" style="position: fixed; bottom: 10px; left: 10px; z-index:9999;
-            background-color: white; padding: 5px; font-size: 12px;
+<div id="timestamp" style="position: fixed; bottom: 10px; left: 10px; z-index:9999; background-color: white; padding: 5px; font-size: 12px;
             border: 1px solid #ccc;">
     Last updated: 2025-08-22 12:49:15
 </div>
@@ -93,6 +92,10 @@
  {}
  ).addTo(map_845a0ec8331ce3e14fbac42f2fe52798);
 
+  // Add Scale control
+  L.control.scale({ position: 'bottomright' }).addTo(map_845a0ec8331ce3e14fbac42f2fe52798);
+
+
   const taxiLayer = L.layerGroup().addTo(map_845a0ec8331ce3e14fbac42f2fe52798);
 
   async function refreshTaxiMarkers() {
@@ -122,9 +125,7 @@
 
   // Initial call to display markers immediately
   refreshTaxiMarkers();
-</script>
 
-<script>
   L.easyButton('fa-home', function(){
     map_845a0ec8331ce3e14fbac42f2fe52798.flyTo([1.3521, 103.8198], 12);
   }, 'Zoom to Home').addTo(map_845a0ec8331ce3e14fbac42f2fe52798);
