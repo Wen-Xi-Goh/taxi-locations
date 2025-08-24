@@ -56,9 +56,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.66.2/L.Control.Locate.min.css"/>
 </head>
 <body>
-
-
-<div id="timestamp" style="position: fixed; bottom: 10px; left: 10px; z-index:9999; background-color: white; padding: 5px; font-size: 12px;
+ 
+<div id="timestamp" style="position: fixed; bottom: 10px; left: 10px; z-index:9999; background-color: white; padding: 5px; font-size: 12px; display: none;
             border: 1px solid #ccc;">
     Last updated: 2025-08-22 12:49:15
 </div>
@@ -66,6 +65,14 @@
 <div class="folium-map" id="map_845a0ec8331ce3e14fbac42f2fe52798" ></div>
 
 <script>
+  // Determine initial zoom level based on screen width
+  var initialZoom = 12; // Default zoom for larger screens
+  if (window.innerWidth < 768) {
+    initialZoom = 10; // Zoom out for smaller screens
+  }
+
+
+
   var map_845a0ec8331ce3e14fbac42f2fe52798 = L.map(
  "map_845a0ec8331ce3e14fbac42f2fe52798",
  {
@@ -73,7 +80,7 @@
  crs: L.CRS.EPSG3857,
  ...{
  "zoom": 12,
- "zoomControl": true,
+ "zoom": initialZoom,
  "preferCanvas": false,
  }
 
@@ -114,6 +121,7 @@
       }
 
       const updateTimestamp = new Date().toLocaleString();
+      document.getElementById('timestamp').style.display = 'block'; // Show the timestamp
       document.getElementById('timestamp').innerText = 'Last updated: ' + updateTimestamp;
     } catch (err) {
       console.error("Taxi data refresh failed:", err);
