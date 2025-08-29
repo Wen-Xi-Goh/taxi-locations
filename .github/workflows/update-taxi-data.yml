@@ -1,4 +1,4 @@
-name: Update Taxi Data Every Minute
+name: Update Taxi Data
 
 on:
   workflow_dispatch: # Manual trigger
@@ -19,27 +19,45 @@ jobs:
           ACCOUNT_KEY: ${{ secrets.ACCOUNT_KEY }}
         run: |
           set -e
-          SKIP=0
-          # Initial call, creates the main file
+          
+          # Initial call to create the base file
           curl -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" \
             "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability" > all_data.json
-          
-          COUNT=$(jq '.value | length' all_data.json)
 
-          # Loop to fetch subsequent pages as long as a full 500 records are returned
-          while [ "$COUNT" -eq 500 ]; do
-            SKIP=$((SKIP + 500))
-            echo "Fetching next page of results, skipping $SKIP records..."
+          # Ensure the base file is valid before starting
+          if ! jq -e \'.value\' all_data.json > /dev/null; then
+            echo "Initial API call failed or returned invalid data."
+            exit 1
+          fi
 
-            curl -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" \
-              "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability?$skip=${SKIP}" > next_page.json
+          SKIP=0
+          # Loop indefinitely until we break it from the inside
+          while true; do
+            PREV_TOTAL=$(jq \'.value | length\' all_data.json)
             
-            # Check how many records we got on the new page
-            COUNT=$(jq '.value | length' next_page.json)
+            SKIP=$((SKIP + 500))
+            echo "Fetching next page, skipping $SKIP records. Current unique total: $PREV_TOTAL"
 
-            # If the new page has data, merge its 'value' array into the main file's 'value' array
-            if [ "$COUNT" -gt 0 ]; then
-              jq '.value += input.value' all_data.json next_page.json > temp_merged.json && mv temp_merged.json all_data.json
+            # Fetch the next page
+            curl -sf -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" \
+              "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability?$skip=${SKIP}" > next_page.json
+
+            # Verify that the new page has a valid \'value\' array. If not, we are done.
+            if ! jq -e \'.value | length > 0\' next_page.json > /dev/null; then
+              echo "Final page is empty or invalid. Stopping."
+              break
+            fi
+
+            # Merge the new page\'s values, remove duplicates, and check the new total
+            jq \'.value |= (. + input.value) | .value |= unique\' all_data.json next_page.json > temp_merged.json
+            mv temp_merged.json all_data.json
+            
+            NEW_TOTAL=$(jq \'.value | length\' all_data.json)
+
+            # If the total number of unique taxis has not increased, we are done.
+            if [ "$NEW_TOTAL" -eq "$PREV_TOTAL" ]; then
+              echo "No new unique taxis found. Loop detected and stopped."
+              break
             fi
           done
 
@@ -51,6 +69,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add taxi-data.json
-          # Commit only if there are changes
           git diff --cached --quiet || git commit -m "Update taxi data (full dataset)"
           git push
+
