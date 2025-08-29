@@ -1,7 +1,7 @@
 name: Update Taxi Data Every Minute
 
 on:
-  workflow_dispatch:  # Manual trigger only
+  workflow_dispatch: # Manual trigger
 
 jobs:
   update-data:
@@ -11,20 +11,46 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Call LTA Taxi API and save response
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Call LTA Taxi API and build full dataset
         env:
           ACCOUNT_KEY: ${{ secrets.ACCOUNT_KEY }}
         run: |
+          set -e
+          SKIP=0
+          # Initial call, creates the main file
           curl -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" \
-          "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability" > taxi-data.json
+            "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability" > all_data.json
+          
+          COUNT=$(jq '.value | length' all_data.json)
+
+          # Loop to fetch subsequent pages as long as a full 500 records are returned
+          while [ "$COUNT" -eq 500 ]; do
+            SKIP=$((SKIP + 500))
+            echo "Fetching next page of results, skipping $SKIP records..."
+
+            curl -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" \
+              "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability?$skip=${SKIP}" > next_page.json
+            
+            # Check how many records we got on the new page
+            COUNT=$(jq '.value | length' next_page.json)
+
+            # If the new page has data, merge its 'value' array into the main file's 'value' array
+            if [ "$COUNT" -gt 0 ]; then
+              jq '.value += input.value' all_data.json next_page.json > temp_merged.json && mv temp_merged.json all_data.json
+            fi
+          done
+
+          echo "Finished fetching all data. Overwriting taxi-data.json."
+          mv all_data.json taxi-data.json
 
       - name: Commit and push data file
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
           git add taxi-data.json
-          git diff --cached --quiet || git commit -m "Update taxi data"
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }} HEAD:main
+          # Commit only if there are changes
+          git diff --cached --quiet || git commit -m "Update taxi data (full dataset)"
+          git push
