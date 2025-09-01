@@ -108,9 +108,13 @@
 
   const taxiLayer = L.layerGroup().addTo(map_845a0ec8331ce3e14fbac42f2fe52798);
 
+  // IMPORTANT: Replace this URL with the raw URL of your taxi-data.json file on GitHub
+  const taxiDataUrl = 'https://raw.githubusercontent.com/Wen-Xi-Goh/taxi-locations/refs/heads/main/taxi-data.json';
+
   async function refreshTaxiMarkers() {
       try {
-          const res = await fetch('taxi-data.json?v=' + new Date().getTime());
+          // Use { cache: 'no-cache' } to force the browser to bypass the cache
+          const res = await fetch(taxiDataUrl, { cache: 'no-cache' });
           const data = await res.json();
           taxiLayer.clearLayers();
 
@@ -122,7 +126,7 @@
           for (const taxi of data.value) {
               L.circleMarker([taxi.Latitude, taxi.Longitude], {
                   radius: 3,
-                  color: '#3333ff',
+                  color: '#007bff',
                   fillOpacity: 0.7
               }).addTo(taxiLayer);
           }
