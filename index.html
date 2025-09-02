@@ -113,8 +113,8 @@
 
   async function refreshTaxiMarkers() {
       try {
-          // Use { cache: 'no-cache' } to force the browser to bypass the cache
-          const res = await fetch(taxiDataUrl, { cache: 'no-cache' });
+          // Add a unique timestamp (cache-busting) AND the no-cache header for robust cache prevention
+          const res = await fetch(`${taxiDataUrl}?v=${new Date().getTime()}`, { cache: 'no-cache' });
           const data = await res.json();
           taxiLayer.clearLayers();
 
