@@ -61,6 +61,12 @@ jobs:
             fi
           done
 
+          # Add the timestamp to the final JSON object
+          echo "Adding timestamp to the final dataset."
+          TIMESTAMP=$(date -u -Iseconds)
+          jq --arg ts "$TIMESTAMP" '.last_updated = $ts' all_data.json > temp_final.json
+          mv temp_final.json all_data.json
+
           echo "Finished fetching all data. Overwriting taxi-data.json."
           mv all_data.json taxi-data.json
 
