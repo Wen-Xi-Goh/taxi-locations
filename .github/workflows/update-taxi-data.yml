@@ -1,33 +1,80 @@
-name: Update taxi data
+name: Update Taxi Data
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger
 
 jobs:
   update-data:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out repo
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Install dependencies
-        run: pip install requests
-
-      - name: Run script to get taxi data
-        run: python get-taxi-data.py
-
-      - name: Commit and push changes
+      - name: Call LTA Taxi API and build full dataset
+        env:
+          ACCOUNT_KEY: ${{ secrets.ACCOUNT_KEY }}
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add taxi-data.json
-          # Only commit if there are changes
-          if ! git diff --staged --quiet; then
-            git commit -m "Update taxi data [skip netlify]"
-            git push
+          set -e
+          
+          # Initial call to create the base file
+          curl -sf -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" \
+            "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability" > all_data.json
+
+          # Ensure the base file is valid before starting
+          if ! jq -e '.value' all_data.json > /dev/null; then
+            echo "Initial API call failed or returned invalid data."
+            exit 1
           fi
+
+          SKIP=0
+          # Loop indefinitely until we break it from the inside
+          while true; do
+            PREV_TOTAL=$(jq '.value | length' all_data.json)
+            
+            SKIP=$((SKIP + 500))
+            echo "Fetching next page, skipping $SKIP records. Current unique total: $PREV_TOTAL"
+
+            # Fetch the next page
+            curl -sf -H "AccountKey: $ACCOUNT_KEY" -H "Accept: application/json" \
+              "https://datamall2.mytransport.sg/ltaodataservice/Taxi-Availability?$skip=${SKIP}" > next_page.json
+
+            # Verify that the new page has a valid 'value' array with content. If not, we are done.
+            if ! jq -e '.value | length > 0' next_page.json > /dev/null; then
+              echo "Final page is empty or invalid. Stopping."
+              break
+            fi
+
+            # Merge the new page's values, remove duplicates, and check the new total
+            jq '.value |= (. + input.value) | .value |= unique' all_data.json next_page.json > temp_merged.json
+            mv temp_merged.json all_data.json
+            
+            NEW_TOTAL=$(jq '.value | length' all_data.json)
+
+            # If the total number of unique taxis has not increased, we are done.
+            if [ "$NEW_TOTAL" -eq "$PREV_TOTAL" ]; then
+              echo "No new unique taxis found. Loop detected and stopped."
+              break
+            fi
+          done
+
+          # Add the timestamp to the final JSON object
+          echo "Adding timestamp to the final dataset."
+          TIMESTAMP=$(date -u -Iseconds)
+          jq --arg ts "$TIMESTAMP" '.last_updated = $ts' all_data.json > temp_final.json
+          mv temp_final.json all_data.json
+
+          echo "Finished fetching all data. Overwriting taxi-data.json."
+          mv all_data.json taxi-data.json
+
+      - name: Commit and push data file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add taxi-data.json
+          git diff --cached --quiet || git commit -m "Update taxi data (full dataset) [skip netlify]"
+          git pull --rebase
+          git push
