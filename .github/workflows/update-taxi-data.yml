@@ -2,8 +2,6 @@ name: Update Taxi Data
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/5 * * * *' # Runs every 5 minutes
 
 jobs:
   update-taxi-data:
